@@ -8,6 +8,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.upgrad.upstac.config.security.UserLoggedInService;
 import org.upgrad.upstac.exception.AppException;
+import org.upgrad.upstac.testrequests.RequestStatus;
 import org.upgrad.upstac.testrequests.TestRequest;
 import org.upgrad.upstac.testrequests.TestRequestQueryService;
 import org.upgrad.upstac.testrequests.TestRequestUpdateService;
@@ -52,7 +53,7 @@ public class LabRequestController {
         //Implement this method to return the list of test requests having status as 'INITIATED'
         //Make use of the findBy() method from testRequestQueryService class to get the list
         // For reference check the method requestHistory() method from TestRequestController class
-            return null; // replace this line with your code
+            return testRequestQueryService.findBy(RequestStatus.INITIATED); // replace this line with your code
 
     }
 
@@ -65,7 +66,8 @@ public class LabRequestController {
         //Make use of the findByTester() method from testRequestQueryService class to get the list
         // For reference check the method getPendingTests() method from TestRequestController class
 
-        return null; // replace this line with your code
+        User user = userLoggedInService.getLoggedInUser();
+        return testRequestQueryService.findByTester(user);
 
 
     }
@@ -82,9 +84,9 @@ public class LabRequestController {
         // Refer to the method createRequest() from the TestRequestController class
 
         try {
-
-            return null; // replace this line of code with your implementation
-
+            User user = userLoggedInService.getLoggedInUser();
+            TestRequest result = testRequestUpdateService.assignForLabTest(id, user);
+            return result;
 
         }catch (AppException e) {
             throw asBadRequest(e.getMessage());
@@ -100,7 +102,9 @@ public class LabRequestController {
         // Create an object of TestResult class and make use of updateLabTest() method from testRequestUpdateService class
         //to update the current test request id with the createLabResult details by the current user(object created)
         try {
-            return null; // replace this line of code with your implementation
+            User user = userLoggedInService.getLoggedInUser();
+            TestRequest result = testRequestUpdateService.updateLabTest(id,createLabResult,user);
+            return result;
 
         } catch (ConstraintViolationException e) {
             throw asConstraintViolation(e);

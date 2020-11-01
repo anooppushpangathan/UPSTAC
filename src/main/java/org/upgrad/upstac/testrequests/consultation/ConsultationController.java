@@ -4,14 +4,15 @@ package org.upgrad.upstac.testrequests.consultation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.upgrad.upstac.config.security.UserLoggedInService;
 import org.upgrad.upstac.exception.AppException;
-import org.upgrad.upstac.testrequests.TestRequest;
-import org.upgrad.upstac.testrequests.TestRequestQueryService;
-import org.upgrad.upstac.testrequests.TestRequestUpdateService;
+import org.upgrad.upstac.testrequests.*;
 import org.upgrad.upstac.testrequests.flow.TestRequestFlowService;
+import org.upgrad.upstac.users.User;
 
 import javax.validation.ConstraintViolationException;
 import java.util.List;
@@ -27,14 +28,11 @@ public class ConsultationController {
     Logger log = LoggerFactory.getLogger(ConsultationController.class);
 
 
-
-
     @Autowired
     private TestRequestUpdateService testRequestUpdateService;
 
     @Autowired
     private TestRequestQueryService testRequestQueryService;
-
 
     @Autowired
     TestRequestFlowService  testRequestFlowService;
@@ -46,12 +44,14 @@ public class ConsultationController {
 
     @GetMapping("/in-queue")
     @PreAuthorize("hasAnyRole('DOCTOR')")
+
     public List<TestRequest> getForConsultations()  {
         //Implement this method to get the list of test requests having status as 'LAB_TEST_COMPLETED'
         // make use of the findBy() method from testRequestQueryService class
         //return the result
         // For reference check the method requestHistory() method from TestRequestController class
-        return null; // replace this line with your code
+
+        return testRequestQueryService.findBy(RequestStatus.LAB_TEST_COMPLETED);
 
     }
 
@@ -63,10 +63,8 @@ public class ConsultationController {
         //Implement this method to return the list of test requests assigned to current doctor(make use of the above created User object)
         //Make use of the findByDoctor() method from testRequestQueryService class to get the list
         // For reference check the method getPendingTests() method from TestRequestController class
-
-        return null; // replace this line with your code
-
-
+        User user = userLoggedInService.getLoggedInUser();
+        return testRequestQueryService.findByDoctor(user);
 
     }
 
@@ -80,8 +78,11 @@ public class ConsultationController {
         //Create an object of TestRequest class and use the assignForConsultation() method of testRequestUpdateService to assign the particular id to the current user
         // return the above created object
         // Refer to the method createRequest() from the TestRequestController class
+
         try {
-            return null; // replace this line of code with your implementation
+            User user = userLoggedInService.getLoggedInUser();
+            TestRequest result = testRequestUpdateService.assignForConsultation(id, user);
+            return result;
         }catch (AppException e) {
             throw asBadRequest(e.getMessage());
         }
@@ -98,7 +99,9 @@ public class ConsultationController {
         //to update the current test request id with the testResult details by the current user(object created)
 
         try {
-            return null; // replace this line of code with your implementation
+            User user = userLoggedInService.getLoggedInUser();
+            TestRequest result = testRequestUpdateService.updateConsultation(id,testResult,user);
+            return result;
 
         } catch (ConstraintViolationException e) {
             throw asConstraintViolation(e);
